@@ -1,0 +1,1 @@
+Build the core responsive cyberpunk style LifeOS dashboard matrix with modular glassmorphic design panels for Minhaj LifeOS.
