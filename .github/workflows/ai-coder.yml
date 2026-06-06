@@ -18,7 +18,6 @@ jobs:
 
       - name: Trigger Gemini AI Code Generation
         env:
-          # এখানে সিক্রেটটিকে সরাসরি এনভায়রনমেন্ট ভ্যারিয়েবলে রূপান্তর করা হলো
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PROMPT_CONTENT=$(cat prompt.txt)
