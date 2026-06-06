@@ -18,11 +18,15 @@ jobs:
 
       - name: Trigger Gemini AI Code Generation
         env:
+          # এখানে সিক্রেটটিকে সরাসরি এনভায়রনমেন্ট ভ্যারিয়েবলে রূপান্তর করা হলো
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PROMPT_CONTENT=$(cat prompt.txt)
           CURRENT_CODE=$(cat src/app/page.tsx 2>/dev/null || echo "No existing page code")
           
+          export PROMPT_CONTENT
+          export CURRENT_CODE
+
           node -e "
           const fs = require('fs');
           const https = require('https');
@@ -33,9 +37,12 @@ jobs:
           
           const options = {
             hostname: 'generativelanguage.googleapis.com',
-            path: '/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=' + process.env.GEMINI_API_KEY,
+            // ২০২৬ সালের স্টেবল মডেল এন্ডপয়েন্ট
+            path: '/v1beta/models/gemini-2.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+              'Content-Type': 'application/json'
+            }
           };
 
           const req = https.request(options, (res) => {
@@ -44,24 +51,22 @@ jobs:
             res.on('end', () => {
               try {
                 const result = JSON.parse(body);
-                if (!result.candidates || !result.candidates[0].content) {
-                  console.error('API Error Response:', body);
+                if (result.error) {
+                  console.error('API Error Response:', result.error.message);
                   process.exit(1);
                 }
                 
                 let aiCode = result.candidates[0].content.parts[0].text;
                 
-                // স্ট্রিপিং লজিক: যদি এআই ভুলে মার্কডাউন র্যাপার দিয়েও দেয়, তা ক্লিন করার কোড
                 if (aiCode.includes('\`\`\`')) {
                   aiCode = aiCode.replace(/\`\`\`[a-zA-Z]*\n/g, '').replace(/\`\`\`/g, '');
                 }
                 
                 if (!fs.existsSync('src/app')) fs.mkdirSync('src/app', { recursive: true });
                 fs.writeFileSync('src/app/page.tsx', aiCode.trim());
-                console.log('AI Code successfully sanitized and written!');
+                console.log('AI Code successfully written to src/app/page.tsx!');
               } catch (e) {
-                console.error('Parsing crashed:', e);
-                console.error('Raw Body was:', body);
+                console.error('Crashed while parsing. Response was:', body);
                 process.exit(1);
               }
             });
