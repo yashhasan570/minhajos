@@ -2,7 +2,7 @@ name: Autonomous GitHub AI Coder
 on:
   push:
     paths:
-      - 'prompt.txt' # যখনই আপনি prompt.txt ফাইলে কিছু লিখে পুশ করবেন, এটি ট্রিপ হবে
+      - 'prompt.txt'
 
 jobs:
   build-and-code:
@@ -14,24 +14,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-level: '20'
+          node-version: '20'
 
       - name: Trigger Gemini AI Code Generation
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # ১. আপনার দেওয়া প্রম্পট রিড করা
           PROMPT_CONTENT=$(cat prompt.txt)
-          
-          # ২. কারেন্ট কোডের স্ট্রাকচার অ্যানালাইসিস করা
           CURRENT_CODE=$(cat src/app/page.tsx 2>/dev/null || echo "No existing page code")
           
-          # ৩. জেমিনি এআই-কে ব্যাকগ্রাউন্ডে কল করা (Node স্ক্রিপ্টের মাধ্যমে সরাসরি গিটহাবে)
           node -e "
           const fs = require('fs');
           const https = require('https');
 
-          const prompt = \`You are an elite Next.js full-stack architect. Based on this prompt: \${process.env.PROMPT_CONTENT}, rewrite the src/app/page.tsx file. Current file code for context: \${process.env.CURRENT_CODE}. Return ONLY valid TypeScript/Next.js code, no markdown wrappers, no commentary.\`;
+          const prompt = \`You are an elite Next.js full-stack architect. Based on this prompt: \${process.env.PROMPT_CONTENT}, rewrite the src/app/page.tsx file. Current file code for context: \${process.env.CURRENT_CODE}. Return ONLY valid, complete Next.js React component code. DO NOT wrap the output in markdown backticks like \\\`\\\`\\\`tsx or \\\`\\\`\\\`. Provide pure raw code only.\`;
 
           const data = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] });
           
@@ -46,13 +42,28 @@ jobs:
             let body = '';
             res.on('data', (d) => body += d);
             res.on('end', () => {
-              const result = JSON.parse(body);
-              const aiCode = result.candidates[0].content.parts[0].text;
-              
-              // স্বয়ংক্রিয়ভাবে ফোল্ডার ও ফাইল তৈরি করা
-              if (!fs.existsSync('src/app')) fs.mkdirSync('src/app', { recursive: true });
-              fs.writeFileSync('src/app/page.tsx', aiCode);
-              console.log('AI Code written successfully!');
+              try {
+                const result = JSON.parse(body);
+                if (!result.candidates || !result.candidates[0].content) {
+                  console.error('API Error Response:', body);
+                  process.exit(1);
+                }
+                
+                let aiCode = result.candidates[0].content.parts[0].text;
+                
+                // স্ট্রিপিং লজিক: যদি এআই ভুলে মার্কডাউন র্যাপার দিয়েও দেয়, তা ক্লিন করার কোড
+                if (aiCode.includes('\`\`\`')) {
+                  aiCode = aiCode.replace(/\`\`\`[a-zA-Z]*\n/g, '').replace(/\`\`\`/g, '');
+                }
+                
+                if (!fs.existsSync('src/app')) fs.mkdirSync('src/app', { recursive: true });
+                fs.writeFileSync('src/app/page.tsx', aiCode.trim());
+                console.log('AI Code successfully sanitized and written!');
+              } catch (e) {
+                console.error('Parsing crashed:', e);
+                console.error('Raw Body was:', body);
+                process.exit(1);
+              }
             });
           });
           req.on('error', (e) => console.error(e));
