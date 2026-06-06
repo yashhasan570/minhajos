@@ -17,8 +17,6 @@ jobs:
           node-version: '20'
 
       - name: Trigger Gemini AI Code Generation
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PROMPT_CONTENT=$(cat prompt.txt)
           CURRENT_CODE=$(cat src/app/page.tsx 2>/dev/null || echo "No existing page code")
@@ -34,9 +32,12 @@ jobs:
 
           const data = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] });
           
+          // আপনার আসল জেমিনি কী এখানে সরাসরি ইনজেক্ট করে দেওয়া হলো
+          const apiKey = 'AQ.Ab8RN6KETnH2PlCM2SxDjiG9kfVfJN-jRvibSygHcLqKx_llKQ';
+
           const options = {
             hostname: 'generativelanguage.googleapis.com',
-            path: '/v1beta/models/gemini-2.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
+            path: '/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey,
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json'
@@ -62,7 +63,7 @@ jobs:
                 
                 if (!fs.existsSync('src/app')) fs.mkdirSync('src/app', { recursive: true });
                 fs.writeFileSync('src/app/page.tsx', aiCode.trim());
-                console.log('AI Code successfully written!');
+                console.log('AI Code successfully generated and written!');
               } catch (e) {
                 console.error('Crashed while parsing. Response was:', body);
                 process.exit(1);
