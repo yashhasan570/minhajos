@@ -1,2 +1,3 @@
 Write a fully completed Next.js default page component for Minhaj LifeOS. Ensure it has an export default function Page(), handles all sub-module client logic internally without external component imports, uses plain CSS styling properties, and returns valid JSX code only. Do not include any backticks or introduction markdown text.
  
+ 
