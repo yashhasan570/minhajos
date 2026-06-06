@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState('notepad');
+  const [activeTab, setActiveTab] = useState<string>('notepad');
 
   return (
     <main className="min-h-screen w-full bg-black text-white font-sans p-4 md:p-8 select-none">
@@ -37,10 +37,10 @@ export default function Page() {
           ))}
         </nav>
 
-        {/* Dynamic Glassmorphic Panel Display */}
+        {/* Dynamic Panel Display */}
         <section className="md:col-span-3 p-6 rounded-2xl bg-zinc-950/40 backdrop-blur-xl border border-zinc-900/80 min-h-[450px] shadow-2xl">
           {activeTab === 'notepad' && (
-            <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
                 <h2 className="text-xl font-bold tracking-wide text-white">Smart Notepad Pro</h2>
                 <span className="text-xs bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">AI Synced</span>
@@ -62,7 +62,7 @@ export default function Page() {
           )}
 
           {activeTab === 'wallet' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
                 <h2 className="text-xl font-bold tracking-wide text-white">Wallet Pro Ledger</h2>
                 <span className="text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20">Double-Entry</span>
@@ -88,8 +88,8 @@ export default function Page() {
           )}
 
           {activeTab === 'focus' && (
-            <div className="flex flex-col items-center justify-center py-10 space-y-6 animate-fadeIn">
-              <div className="w-44 h-44 rounded-full border-4 border-zinc-800 border-t-cyan-400 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,242,254,0.05)] animate-spin-slow">
+            <div className="flex flex-col items-center justify-center py-10 space-y-6">
+              <div className="w-44 h-44 rounded-full border-4 border-zinc-800 border-t-cyan-400 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,242,254,0.05)]">
                 <span className="text-3xl font-black tracking-wider text-white">25:00</span>
                 <span className="text-[10px] uppercase text-zinc-500 tracking-widest mt-1">Work Block</span>
               </div>
