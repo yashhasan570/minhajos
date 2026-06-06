@@ -32,4 +32,4 @@ You are rebuilding the absolute elite version of "Minhaj | LifeOS". We are compl
 1. DO NOT write placeholder comments like "// Code goes here" or skip any logic blocks. Write out every controller, dynamic loop, state parser, and design property fully.
 2. Ensure every single button click, input state change, and save function targets specific modular logic to guarantee data persistence without mutation bugs.
 
-Rewrite the entire src/app/page.tsx code file now with absolute precision. 
+Rewrite the entire src/app/page.tsx code file now with absolute precision.  
