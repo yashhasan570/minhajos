@@ -17,6 +17,8 @@ jobs:
           node-version: '20'
 
       - name: Trigger Gemini AI Code Generation
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PROMPT_CONTENT=$(cat prompt.txt)
           CURRENT_CODE=$(cat src/app/page.tsx 2>/dev/null || echo "No existing page code")
@@ -32,12 +34,9 @@ jobs:
 
           const data = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] });
           
-          // তোমার আসল কি-টি এখানে সরাসরি স্ট্রিং হিসেবে ইনজেক্ট করা হলো
-          const apiKey = 'AQ.Ab8RN6KETnH2PlCM2SxDjiG9kfVfJN-jRvibSygHcLqKx_llKQ';
-
           const options = {
             hostname: 'generativelanguage.googleapis.com',
-            path: '/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey,
+            path: '/v1beta/models/gemini-2.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json'
@@ -51,18 +50,21 @@ jobs:
               try {
                 const result = JSON.parse(body);
                 if (result.error) {
-                  console.error('API Error:', result.error.message);
+                  console.error('API Error Response:', result.error.message);
                   process.exit(1);
                 }
+                
                 let aiCode = result.candidates[0].content.parts[0].text;
+                
                 if (aiCode.includes('\`\`\`')) {
                   aiCode = aiCode.replace(/\`\`\`[a-zA-Z]*\n/g, '').replace(/\`\`\`/g, '');
                 }
+                
                 if (!fs.existsSync('src/app')) fs.mkdirSync('src/app', { recursive: true });
                 fs.writeFileSync('src/app/page.tsx', aiCode.trim());
-                console.log('Success!');
+                console.log('AI Code successfully written!');
               } catch (e) {
-                console.error('Failed to parse:', body);
+                console.error('Crashed while parsing. Response was:', body);
                 process.exit(1);
               }
             });
